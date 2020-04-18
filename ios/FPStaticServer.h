@@ -12,8 +12,12 @@
 
     @property (nonatomic, retain) NSString* www_root;
     @property (nonatomic, retain) NSNumber* port;
+
+    @property(nonatomic, retain) NSString *redirectHost;
+    @property(nonatomic, retain) NSString *refererHeader;
+
     @property (assign) BOOL localhost_only;
     @property (assign) BOOL keep_alive;
 
 @end
-  
+

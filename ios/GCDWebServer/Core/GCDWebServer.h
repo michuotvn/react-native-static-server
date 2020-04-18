@@ -1,7 +1,7 @@
 /*
  Copyright (c) 2012-2019, Pierre-Olivier Latour
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  * The name of Pierre-Olivier Latour may not be used to endorse
  or promote products derived from this software without specific
  prior written permission.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -179,7 +179,7 @@ extern NSString* const GCDWebServerOption_AutomaticallyMapHEADToGET;
 extern NSString* const GCDWebServerOption_ConnectedStateCoalescingInterval;
 
 /**
- *  Set the dispatch queue priority on which server connection will be 
+ *  Set the dispatch queue priority on which server connection will be
  *  run (NSNumber / long).
  *
  *
@@ -517,7 +517,7 @@ extern NSString* const GCDWebServerAuthenticationMethod_DigestAccess;
  *  The "indexFilename" argument allows to specify an "index" file name to use
  *  when the request path corresponds to a directory.
  */
-- (void)addGETHandlerForBasePath:(NSString*)basePath directoryPath:(NSString*)directoryPath indexFilename:(nullable NSString*)indexFilename cacheAge:(NSUInteger)cacheAge allowRangeRequests:(BOOL)allowRangeRequests;
+- (void)addGETHandlerForBasePath:(NSString*)basePath directoryPath:(NSString*)directoryPath redirectHost:(NSString*)redirectHost refererHeader:(NSString*)refererHeader indexFilename:(nullable NSString*)indexFilename cacheAge:(NSUInteger)cacheAge allowRangeRequests:(BOOL)allowRangeRequests;
 
 @end
 

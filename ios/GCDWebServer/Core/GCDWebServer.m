@@ -1,7 +1,7 @@
 /*
  Copyright (c) 2012-2019, Pierre-Olivier Latour
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  * The name of Pierre-Olivier Latour may not be used to endorse
  or promote products derived from this software without specific
  prior written permission.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -961,6 +961,7 @@ static inline NSString* _EncodeBase64(NSString* string) {
                processBlock:^GCDWebServerResponse*(GCDWebServerRequest* request) {
                  GCDWebServerResponse* response = [GCDWebServerDataResponse responseWithData:staticData contentType:contentType];
                  response.cacheControlMaxAge = cacheAge;
+                  NSLog(@"addGETHandlerForPath1");
                  return response;
                }];
 }
@@ -978,6 +979,7 @@ static inline NSString* _EncodeBase64(NSString* string) {
                    response = [GCDWebServerFileResponse responseWithFile:filePath isAttachment:isAttachment];
                  }
                  response.cacheControlMaxAge = cacheAge;
+                 NSLog(@"addGETHandlerForPath2");
                  return response;
                }];
 }
@@ -1012,51 +1014,71 @@ static inline NSString* _EncodeBase64(NSString* string) {
   return [GCDWebServerDataResponse responseWithHTML:html];
 }
 
-- (void)addGETHandlerForBasePath:(NSString*)basePath directoryPath:(NSString*)directoryPath indexFilename:(NSString*)indexFilename cacheAge:(NSUInteger)cacheAge allowRangeRequests:(BOOL)allowRangeRequests {
-  if ([basePath hasPrefix:@"/"] && [basePath hasSuffix:@"/"]) {
-    GCDWebServer* __unsafe_unretained server = self;
-    [self addHandlerWithMatchBlock:^GCDWebServerRequest*(NSString* requestMethod, NSURL* requestURL, NSDictionary<NSString*, NSString*>* requestHeaders, NSString* urlPath, NSDictionary<NSString*, NSString*>* urlQuery) {
-      if (![requestMethod isEqualToString:@"GET"]) {
-        return nil;
-      }
-      if (![urlPath hasPrefix:basePath]) {
-        return nil;
-      }
-      return [[GCDWebServerRequest alloc] initWithMethod:requestMethod url:requestURL headers:requestHeaders path:urlPath query:urlQuery];
-    }
-        processBlock:^GCDWebServerResponse*(GCDWebServerRequest* request) {
-          GCDWebServerResponse* response = nil;
-          NSString* filePath = [directoryPath stringByAppendingPathComponent:GCDWebServerNormalizePath([request.path substringFromIndex:basePath.length])];
-          NSString* fileType = [[[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:NULL] fileType];
-          if (fileType) {
-            if ([fileType isEqualToString:NSFileTypeDirectory]) {
-              if (indexFilename) {
-                NSString* indexPath = [filePath stringByAppendingPathComponent:indexFilename];
-                NSString* indexType = [[[NSFileManager defaultManager] attributesOfItemAtPath:indexPath error:NULL] fileType];
-                if ([indexType isEqualToString:NSFileTypeRegular]) {
-                  return [GCDWebServerFileResponse responseWithFile:indexPath];
-                }
-              }
-              response = [server _responseWithContentsOfDirectory:filePath];
-            } else if ([fileType isEqualToString:NSFileTypeRegular]) {
-              if (allowRangeRequests) {
-                response = [GCDWebServerFileResponse responseWithFile:filePath byteRange:request.byteRange];
-                [response setValue:@"bytes" forAdditionalHeader:@"Accept-Ranges"];
-              } else {
-                response = [GCDWebServerFileResponse responseWithFile:filePath];
-              }
+- (void)addGETHandlerForBasePath:(NSString*)basePath directoryPath:(NSString*)directoryPath redirectHost:(NSString*)redirectHost refererHeader:(NSString*)refererHeader indexFilename:(NSString*)indexFilename cacheAge:(NSUInteger)cacheAge allowRangeRequests:(BOOL)allowRangeRequests {
+    if ([basePath hasPrefix:@"/"] && [basePath hasSuffix:@"/"]) {
+//        GCDWebServer* __unsafe_unretained server = self;
+        [self addHandlerWithMatchBlock:^GCDWebServerRequest*(NSString* requestMethod, NSURL* requestURL, NSDictionary<NSString*, NSString*>* requestHeaders, NSString* urlPath, NSDictionary<NSString*, NSString*>* urlQuery) {
+            if (![requestMethod isEqualToString:@"GET"]) {
+                return nil;
             }
-          }
-          if (response) {
-            response.cacheControlMaxAge = cacheAge;
-          } else {
-            response = [GCDWebServerResponse responseWithStatusCode:kGCDWebServerHTTPStatusCode_NotFound];
-          }
-          return response;
+            if (![urlPath hasPrefix:basePath]) {
+                return nil;
+            }
+            return [[GCDWebServerRequest alloc] initWithMethod:requestMethod url:requestURL headers:requestHeaders path:urlPath query:urlQuery];
+        }
+          processBlock:^GCDWebServerResponse*(GCDWebServerRequest* request) {
+            GCDWebServerResponse* response = nil;
+            NSHTTPURLResponse *urlResponse = nil;
+            NSError *error = nil;
+
+            //cxp folk
+            //            NSString *customUrl = [request.URL.absoluteString stringByReplacingOccurrencesOfString:@"http://localhost:8080" withString:[request.query valueForKey:@"host"]];
+            NSString *customUrl = [request.URL.absoluteString stringByReplacingOccurrencesOfString:@"http://localhost:8080" withString:redirectHost];
+            NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:customUrl]];
+            [urlRequest setValue:refererHeader forHTTPHeaderField:@"Referer"];
+
+            NSData *responseData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&urlResponse error:&error];
+
+            NSDictionary *responseHeaders = urlResponse.allHeaderFields;
+            NSString *contentType = [responseHeaders valueForKey:@"Content-Type"];
+
+            response = [GCDWebServerDataResponse responseWithData:responseData contentType:contentType];
+
+            return response;
+            //
+
+
+            //            NSString* filePath = [directoryPath stringByAppendingPathComponent:GCDWebServerNormalizePath([request.path substringFromIndex:basePath.length])];
+            //            NSString* fileType = [[[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:NULL] fileType];
+            //            if (fileType) {
+            //                if ([fileType isEqualToString:NSFileTypeDirectory]) {
+            //                    if (indexFilename) {
+            //                        NSString* indexPath = [filePath stringByAppendingPathComponent:indexFilename];
+            //                        NSString* indexType = [[[NSFileManager defaultManager] attributesOfItemAtPath:indexPath error:NULL] fileType];
+            //                        if ([indexType isEqualToString:NSFileTypeRegular]) {
+            //                            return [GCDWebServerFileResponse responseWithFile:indexPath];
+            //                        }
+            //                    }
+            //                    response = [server _responseWithContentsOfDirectory:filePath];
+            //                } else if ([fileType isEqualToString:NSFileTypeRegular]) {
+            //                    if (allowRangeRequests) {
+            //                        response = [GCDWebServerFileResponse responseWithFile:filePath byteRange:request.byteRange];
+            //                        [response setValue:@"bytes" forAdditionalHeader:@"Accept-Ranges"];
+            //                    } else {
+            //                        response = [GCDWebServerFileResponse responseWithFile:filePath];
+            //                    }
+            //                }
+            //            }
+            //            if (response) {
+            //                response.cacheControlMaxAge = cacheAge;
+            //            } else {
+            //                response = [GCDWebServerResponse responseWithStatusCode:kGCDWebServerHTTPStatusCode_NotFound];
+            //            }
+            //            return response;
         }];
-  } else {
-    GWS_DNOT_REACHED();
-  }
+    } else {
+        GWS_DNOT_REACHED();
+    }
 }
 
 @end
@@ -1065,9 +1087,9 @@ static inline NSString* _EncodeBase64(NSString* string) {
 
 + (void)setLogLevel:(int)level {
 #if defined(__GCDWEBSERVER_LOGGING_FACILITY_XLFACILITY__)
-  [XLSharedFacility setMinLogLevel:level];
+    [XLSharedFacility setMinLogLevel:level];
 #elif defined(__GCDWEBSERVER_LOGGING_FACILITY_BUILTIN__)
-  GCDWebServerLogLevel = level;
+    GCDWebServerLogLevel = level;
 #endif
 }
 

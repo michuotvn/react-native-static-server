@@ -32,6 +32,8 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(start: (NSString *)port
                   root:(NSString *)optroot
+                  redirectHost:(NSString *)redirectHost
+                  refererHeader:(NSString *)refererHeader
                   localOnly:(BOOL *)localhost_only
                   keepAlive:(BOOL *)keep_alive
                   resolver:(RCTPromiseResolveBlock)resolve
@@ -54,6 +56,9 @@ RCT_EXPORT_METHOD(start: (NSString *)port
         self.www_root = root;
     }
 
+    self.redirectHost = redirectHost;
+    self.refererHeader = refererHeader;
+
     if(port && [port length] > 0) {
         NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
         f.numberStyle = NSNumberFormatterDecimalStyle;
@@ -73,7 +78,7 @@ RCT_EXPORT_METHOD(start: (NSString *)port
         return;
     }
 
-    [_webServer addGETHandlerForBasePath:@"/" directoryPath:self.www_root indexFilename:@"index.html" cacheAge:3600 allowRangeRequests:YES];
+    [_webServer addGETHandlerForBasePath:@"/" directoryPath:self.www_root redirectHost:self.redirectHost refererHeader:self.refererHeader indexFilename:@"index.html" cacheAge:3600 allowRangeRequests:YES];
 
     NSError *error;
     NSMutableDictionary* options = [NSMutableDictionary dictionary];

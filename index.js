@@ -57,6 +57,11 @@ class StaticServer {
 		this._handleAppStateChangeFn = this._handleAppStateChange.bind(this);
 	}
 
+	setRedirectHost(redirecthost, referer) {
+		this.redirecthost = redirecthost
+		this.referer = referer
+	}
+
 	start() {
 		if( this.running ){
 			return Promise.resolve(this.origin);
@@ -69,7 +74,8 @@ class StaticServer {
 			AppState.addEventListener('change', this._handleAppStateChangeFn);
 		}
 
-		return FPStaticServer.start(this.port, this.root, this.localOnly, this.keepAlive)
+		console.log(this.port, this.root, this.redirecthost, this.referer, this.localOnly, this.keepAlive)
+		return FPStaticServer.start(this.port, this.root, this.redirecthost, this.referer, this.localOnly, this.keepAlive)
 			.then((origin) => {
 				this._origin = origin;
 				return origin;
