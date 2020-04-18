@@ -74,7 +74,6 @@ class StaticServer {
 			AppState.addEventListener('change', this._handleAppStateChangeFn);
 		}
 
-		console.log(this.port, this.root, this.redirecthost, this.referer, this.localOnly, this.keepAlive)
 		return FPStaticServer.start(this.port, this.root, this.redirecthost, this.referer, this.localOnly, this.keepAlive)
 			.then((origin) => {
 				this._origin = origin;
