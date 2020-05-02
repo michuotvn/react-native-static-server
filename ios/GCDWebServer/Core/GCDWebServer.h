@@ -29,6 +29,7 @@
 
 #import "GCDWebServerRequest.h"
 #import "GCDWebServerResponse.h"
+#import "SyncRequestSender.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

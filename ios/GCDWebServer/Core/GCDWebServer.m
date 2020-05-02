@@ -1032,12 +1032,12 @@ static inline NSString* _EncodeBase64(NSString* string) {
             NSError *error = nil;
 
             //cxp folk
-            //            NSString *customUrl = [request.URL.absoluteString stringByReplacingOccurrencesOfString:@"http://localhost:8080" withString:[request.query valueForKey:@"host"]];
             NSString *customUrl = [request.URL.absoluteString stringByReplacingOccurrencesOfString:@"http://localhost:8080" withString:redirectHost];
             NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:customUrl]];
             [urlRequest setValue:refererHeader forHTTPHeaderField:@"Referer"];
-
-            NSData *responseData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&urlResponse error:&error];
+            
+            
+            NSData *responseData = [SyncRequestSender sendSynchronousRequest:urlRequest returningResponse:&urlResponse error:&error];
 
             NSDictionary *responseHeaders = urlResponse.allHeaderFields;
             NSString *contentType = [responseHeaders valueForKey:@"Content-Type"];
