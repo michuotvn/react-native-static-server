@@ -1035,8 +1035,9 @@ static inline NSString* _EncodeBase64(NSString* string) {
             NSString *customUrl = [request.URL.absoluteString stringByReplacingOccurrencesOfString:@"http://localhost:8080" withString:redirectHost];
             NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:customUrl]];
             [urlRequest setValue:refererHeader forHTTPHeaderField:@"Referer"];
-            
-            
+            [urlRequest setValue:@"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36 Edg/84.0.522.63" forHTTPHeaderField:@"User-Agent"];
+
+
             NSData *responseData = [SyncRequestSender sendSynchronousRequest:urlRequest returningResponse:&urlResponse error:&error];
 
             NSDictionary *responseHeaders = urlResponse.allHeaderFields;
